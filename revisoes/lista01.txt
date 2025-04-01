@@ -1,0 +1,72 @@
+Exercícios de CMP1160
+ref. aula de criação de processos - Lab1.
+
+1) Abra o teminal do linux e digite:
+    # man ps
+    --> leia o manual do comando e responda: qual a utilidade do ps?
+    Resposta: Mostra informação sobre uma série de processos ativos. Os processos são mostrados de acordo com o usuário logado e com o terminal invocado
+
+    # man top
+    --> qual a utilidade do comando top?
+    Resposta: mostra uma série de informações sobre o sistema como threads, processos, uso de memória etc.
+
+    # man kill
+    --> qual a utilidade do comando kill?
+    Resposta: envia um sinal para um determinado programa, se nenhum sinal for especificado, o sinal de TERM (término de processo) é enviado.
+
+2)Modifique o programa "forks.c" substituindo o valor "2" da função sleep() pelo valor "100". Em seguida, abra outro terminal digitando "<Alt> F2". No novo terminal, digite:
+        # ps -el
+    --> Quantos processos foram criados? Justifique a sua resposta,
+    criando uma expressão algébrica que aproxima a quantidade de
+    processos criados em razão do número de vezes que a chamada
+    fork() aparece no programa.
+        Resposta: No total, 8 processos foram criados, visto que, na linha 6 o programa é, basicamente, dividido em 2; esses dois processos criarão outros dois processos, totalizando 4 processos no total e assim por diante. E, sendo n o número de forks no programa, a função f que determina a quantidade de processos no sistema é dada por f(n) = 2^n
+
+    Para isso, modifique o programa "forks.c" aumentando e
+    diminuindo o numero de chamadas fork(). Em seguida, do terminal,
+    execute o comando "pstree -n <PID>", onde PID corresponde ao
+    identificador do primeiro processo criado.
+
+    Posteriormente, identifique o PID do primeiro processo gerado
+    para o programa forks. Em seguida, finalize esse processo,
+    digitando:
+        # kill-9 <PID>
+
+    --> O que aconteceu, em relação aos demais processos? Em relação
+    à execução do programa forks no terminal que estava bloqueado?
+        Resposta: O processo pai foi finalizado mas os processos filhos ainda estão sendo executados, o sistema operacional considera tais processos como zumbis
+Quais as conclusões desse experimento?
+
+3) Retorne o valor de sleep() para "2", execute os comandos e
+responda às questões:
+# strace -c ./forks
+--> Quantas vezes a chamada clone () é executada? Para que serve
+a chamada clone ()?
+# strace -r ./forks
+# /usr/bin/time -f "%S\n%U" ./forks
+# time ./forks
+--> Quais as constatacoes acerca das chamadas de sistema e do
+tempo de execucao de forks?
+# strace -c ./execv dia
+# /usr/bin/time -f "%M"./execv dia
+Agora comente a linha de código onde aparece a chamada fork(),
+recompile e re-execute os comandos anteriores.
+--> Constatações e conclusões acerca do desempenho?
+
+4) Modifique o programa forks substituindo a chamada fork() por
+vfork(). Ainda, utilize o sleep=100.
+Em seguida, refaça os procedimentos descritos no item 2 deste
+documento.
+--> Constatações e conclusões?
+Execute o comando:
+strace -c ./forks
+-->Quantas vezes a chamada clone () é executada?Justifique sua
+resposta.
+
+
+5) Execute os comandos (preferencialmente usando usuario=root):
+# strace -c ./danger
+# ./danger
+Em seguida, substitua a chamada fork() por vfork() no programa
+danger.c, recompile e re-execute os comandos supracitados.
+Constatações e conclusões?
