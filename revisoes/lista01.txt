@@ -39,29 +39,159 @@ Quais as conclusões desse experimento?
 
 3) Retorne o valor de sleep() para "2", execute os comandos e
 responda às questões:
-# strace -c ./forks
---> Quantas vezes a chamada clone () é executada? Para que serve
-a chamada clone ()?
-# strace -r ./forks
-# /usr/bin/time -f "%S\n%U" ./forks
-# time ./forks
---> Quais as constatacoes acerca das chamadas de sistema e do
-tempo de execucao de forks?
-# strace -c ./execv dia
-# /usr/bin/time -f "%M"./execv dia
-Agora comente a linha de código onde aparece a chamada fork(),
-recompile e re-execute os comandos anteriores.
---> Constatações e conclusões acerca do desempenho?
+    # strace -c ./forks
+    --> Quantas vezes a chamada clone () é executada? Para que serve
+    a chamada clone ()?
+
+    Resposta: A chamada clone() é executada 5 vezes. Comando clone() opera de forma similar ao fork() com a diferença de dar mais controle sobre os processos filhos que foram gerados, segundo o comando man:
+        For example, using these system calls, the caller can control whether or not the two processes share the virtual address space, the table  of  file descriptors,  and  the  table of signal handlers
+
+
+    # strace -r ./forks
+    # /usr/bin/time -f "%S\n%U" ./forks
+    # time ./forks
+    --> Quais as constatacoes acerca das chamadas de sistema e do
+    tempo de execucao de forks?
+
+    Resposta: Um tempo proximo a zero é o comum entre cada análise.
+
+
+    # strace -c ./execv dia
+    # /usr/bin/time -f "%M"./execv dia
+    Agora comente a linha de código onde aparece a chamada fork(),
+    recompile e re-execute os comandos anteriores.
+    --> Constatações e conclusões acerca do desempenho?
+
+
+
+
+
+
+    Resposta:
+        antes de comentar:
+
+        walker@ambulare:~/Documents/puc-docs/sistemas_distribuidos/REV-SO/LAB1CMP11602012$ strace -c ./execv.o dia
+        Mon Apr  7 04:43:59 PM -03 2025
+        % time     seconds  usecs/call     calls    errors syscall
+        ------ ----------- ----------- --------- --------- ----------------
+        71.29    0.000601         601         1           wait4
+        8.07    0.000068          68         1           clone
+        6.88    0.000058           7         8           mmap
+        2.85    0.000024           8         3           mprotect
+        2.73    0.000023          23         1           munmap
+        2.14    0.000018           9         2           rt_sigprocmask
+        1.19    0.000010           5         2           pread64
+        0.83    0.000007           3         2           openat
+        0.59    0.000005           5         1           read
+        0.59    0.000005           2         2           close
+        0.47    0.000004           2         2           fstat
+        0.47    0.000004           4         1           arch_prctl
+        0.47    0.000004           4         1           set_tid_address
+        0.47    0.000004           4         1           set_robust_list
+        0.47    0.000004           4         1           prlimit64
+        0.47    0.000004           4         1           rseq
+        0.00    0.000000           0         1           brk
+        0.00    0.000000           0         1         1 access
+        0.00    0.000000           0         1           execve
+        ------ ----------- ----------- --------- --------- ----------------
+        100.00    0.000843          25        33         1 total
+
+
+
+        walker@ambulare:~/Documents/puc-docs/sistemas_distribuidos/REV-SO/LAB1CMP11602012$ /usr/bin/time -f "%M" ./execv.o dia
+        Mon Apr  7 04:44:03 PM -03 2025
+        3928
+
+
+
+
+
+
+
+
+
+
+
+       após comentar
+            walker@ambulare:~/Documents/puc-docs/sistemas_distribuidos/REV-SO/LAB1CMP11602012$ strace -c ./execv.o dia
+            Mon Apr  7 04:40:47 PM -03 2025
+            % time     seconds  usecs/call     calls    errors syscall
+            ------ ----------- ----------- --------- --------- ----------------
+            15.82    0.000025           4         6           mprotect
+            12.66    0.000020          10         2           munmap
+            12.03    0.000019           3         6           openat
+            10.76    0.000017           2         8           close
+            10.76    0.000017           2         8           fstat
+            6.33    0.000010           2         4           read
+            6.33    0.000010           2         4           brk
+            5.06    0.000008           0        17           mmap
+            4.43    0.000007           7         1           write
+            3.16    0.000005           5         1           getrandom
+            2.53    0.000004           4         1           lseek
+            2.53    0.000004           2         2           set_tid_address
+            2.53    0.000004           2         2           set_robust_list
+            2.53    0.000004           2         2           prlimit64
+            2.53    0.000004           2         2           rseq
+            0.00    0.000000           0         4           pread64
+            0.00    0.000000           0         2         2 access
+            0.00    0.000000           0         2           execve
+            0.00    0.000000           0         2           arch_prctl
+            ------ ----------- ----------- --------- --------- ----------------
+            100.00    0.000158           2        76         2 total
+
+
+
+            walker@ambulare:~/Documents/puc-docs/sistemas_distribuidos/REV-SO/LAB1CMP11602012$ /usr/bin/time -f "%M" ./execv.o dia
+            Mon Apr  7 04:41:38 PM -03 2025
+            3708
+
+
+
+
+
+        Analisando os dados é evidente que a ausência do fork() permite um desempenho melhor, fisto que chamar a função fork desencadeia uma série de outras chamadas que tomam tempo processamento. É interessante observar que o número de chamadas de alguns programas pode ter aumentado sem o comando fork, mas o tempo de cada uma é menor do que a leitura anterior
+
 
 4) Modifique o programa forks substituindo a chamada fork() por
 vfork(). Ainda, utilize o sleep=100.
 Em seguida, refaça os procedimentos descritos no item 2 deste
 documento.
---> Constatações e conclusões?
+    --> Constatações e conclusões?
+    Resposta: Quanto a quantidade de processos criados, 6. Quanto a árvore de processos, é certamente diferente da versão anterior: forks.o───forks.o───forks.o───forks.o───forks.o───forks.o; quanto ao kill -9 pid, todos os processos foram finalizados. Assumindo o funcionamento do vfork(), faz sentido o resultado da arvore de processos, visto que cada filho é dependente do pai, já a quantidade de processos
+
+
+
+
 Execute o comando:
 strace -c ./forks
--->Quantas vezes a chamada clone () é executada?Justifique sua
-resposta.
+    -->Quantas vezes a chamada clone () é executada?Justifique sua
+    resposta.
+
+        Resposta: Strace não apresenta nenhum clone()  mas internamente vfork() usa clone(), mas através da glibc
+
+    walker@ambulare:~/Documents/puc-docs/sistemas_distribuidos/REV-SO/LAB1CMP11602012$ strace -c ./forks.o
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+    48.06    0.000198          39         5           vfork
+    18.93    0.000078           9         8           mmap
+    6.07    0.000025           8         3           mprotect
+    5.58    0.000023          23         1           munmap
+    5.10    0.000021          10         2           openat
+    2.18    0.000009           9         1           clock_nanosleep
+    1.94    0.000008           4         2           pread64
+    1.70    0.000007           3         2           close
+    1.70    0.000007           3         2           fstat
+    1.46    0.000006           6         1         1 access
+    1.21    0.000005           5         1           read
+    1.21    0.000005           5         1           brk
+    0.97    0.000004           4         1           arch_prctl
+    0.97    0.000004           4         1           set_tid_address
+    0.97    0.000004           4         1           set_robust_list
+    0.97    0.000004           4         1           prlimit64
+    0.97    0.000004           4         1           rseq
+    0.00    0.000000           0         1           execve
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.000412          11        35         1 total
 
 
 5) Execute os comandos (preferencialmente usando usuario=root):
